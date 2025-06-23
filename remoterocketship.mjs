@@ -1,12 +1,14 @@
-import fetch from 'node-fetch'; // Use ES module import
-import fs from 'fs';
-import { createObjectCsvWriter } from 'csv-writer'; // Import the csv-writer package
+import fetch from 'node-fetch'; // Import fetch module
+import fs from 'fs'; 
+import { createObjectCsvWriter } from 'csv-writer'; 
 
-export async function fetchJobOpenings(location="United States") {
+export async function fetchJobOpenings(location = "United States") {
   const queryOptions = {
     seniorityFilters: [],
     locationFilters: [location],
     locationUSStatesFilters: [],
+    locationCityFilters: [],
+    showHybridJobs: false,
     techStackFilters: [],
     jobTitleFilters: ["Frontend Engineer", "Backend Engineer", "Full-stack Engineer"],
     keywordFilters: [],
@@ -18,6 +20,7 @@ export async function fetchJobOpenings(location="United States") {
     showJobsWithoutSalaryWithMinSalaryFilter: false,
     degreeRequiredFilter: null,
     industriesFilters: [],
+    excludeIndustriesFilters: [],
     companyIdFilter: null,
     page: 1,
     itemsPerPage: 50,
@@ -25,7 +28,8 @@ export async function fetchJobOpenings(location="United States") {
     showOnlySavedJobs: false,
     showOnlyAppliedJobs: false,
     showOnlyHiddenJobs: false,
-    userSubscription: null,
+    savedJobOpeningIds: [],
+    appliedJobOpeningIds: [],
     hiddenJobOpeningIds: [],
     numberOfJobsHiddenInThisSession: 0,
   };
@@ -39,20 +43,18 @@ export async function fetchJobOpenings(location="United States") {
         accept: "*/*",
         "accept-language": "en-US,en;q=0.9",
         "content-type": "application/json",
-        priority: "u=1, i",
-        "sec-ch-ua": `"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"`,
+        "priority": "u=1, i",
+        "sec-ch-ua": `"Google Chrome";v="137", "Chromium";v="137", "Not/A)Brand";v="24"`,
         "sec-ch-ua-mobile": "?0",
         "sec-ch-ua-platform": `"Windows"`,
         "sec-fetch-dest": "empty",
         "sec-fetch-mode": "cors",
         "sec-fetch-site": "same-origin",
-        cookie:
-          "ph_phc_nS6oL3AeBB5jlWDYqogsM7HuhPENXrl5fWnJDAfTVbh_posthog=%7B%22distinct_id%22%3A%2201945e61-c223-7d69-931d-018d5367440d%22%2C%22%24sesid%22%3A%5B1736750306869%2C%2201945e61-c222-776c-8281-e87efe47740f%22%2C1736750252578%5D%2C%22%24initial_person_info%22%3A%7B%22r%22%3A%22https%3A%2F%2Fwww.google.com%2F%22%2C%22u%22%3A%22https%3A%2F%2Fwww.remoterocketship.com%2F%22%7D%7D",
-        Referer:
-          "https://www.remoterocketship.com/?page=1&sort=DateAdded&jobTitle=Frontend+Engineer%2CBackend+Engineer%2CFull-stack+Engineer",
+        "cookie": "ph_phc_nS6oL3AeBB5jlWDYqogsM7HuhPENXrl5fWnJDAfTVbh_posthog=%7B%22distinct_id%22%3A%220193d502-8a84-7bb8-8b8a-b04eee659f5d%22%2C%22%24sesid%22%3A%5B1750695254718%2C%2201979d90-7ed2-7970-beee-a07a79d19e73%22%2C1750695182033%5D%2C%22%24initial_person_info%22%3A%7B%22r%22%3A%22https%3A%2F%2Fwww.google.com%2F%22%2C%22u%22%3A%22https%3A%2F%2Fwww.remoterocketship.com%2Fcompany%2Fneptuneretailsolutions%2Fjobs%2Fphp-software-engineer-backend-api-united-states%22%7D%7D",
+        Referer: "https://www.remoterocketship.com/?page=1&sort=DateAdded&locations=United+States",
         "Referrer-Policy": "strict-origin-when-cross-origin",
       },
-      method: "GET",
+      method: "GET",  // Ensure the method is GET
     });
 
     if (!response.ok) {
@@ -64,10 +66,11 @@ export async function fetchJobOpenings(location="United States") {
     return data.jobOpenings;
   } catch (error) {
     console.error("Error fetching job openings:", error);
+    return [];  // Return an empty array in case of error
   }
 }
 
-// Call the function
+// Example function to fetch and write data to a CSV
 const get_jobs_from_remoterocketship = () => {
 
 
@@ -105,10 +108,10 @@ const get_jobs_from_remoterocketship = () => {
         locationHumanReadableText: job.location,
         salaryRange: job.salaryRange?.salaryHumanReadableText || 'Not Specified',
         techStack: job.techStack?.join(', ') || '',
-        employmentType: job.employmentType,
-        company_name: job.company?.name,
-        company_url: job.company?.homePageURL,
-        company_linkedin_url: job.company?.linkedInURL,
+        employmentType: job.employmentType || 'Not Specified',
+        company_name: job.company?.name || 'Not Available',
+        company_url: job.company?.homePageURL || '',
+        company_linkedin_url: job.company?.linkedInURL || '',
         url: job.url,
       }));
 

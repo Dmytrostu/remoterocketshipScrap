@@ -12,8 +12,8 @@ const updateDB = async () => {
     try {
         const us_data = await fetchJobOpenings("United States");
         const eu_data = await fetchJobOpenings("Europe");
-        console.log(`Fetched ${us_data.length} us job openings.`);
-        console.log(`Fetched ${eu_data.length} eu job openings.`);
+        console.log(`Fetched ${us_data?.length} us job openings.`);
+        console.log(`Fetched ${eu_data?.length} eu job openings.`);
 
         const jobs_data = [...us_data, ...eu_data];
 
